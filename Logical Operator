@@ -1,0 +1,90 @@
+LOGICAL OPERATOR TASK
+
+package practice;
+
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+
+public class MongoDB_Connection {
+    
+    private static final String URI = "mongodb://localhost:27017";
+    
+    public static void main(String[] args) {
+        // Connect to MongoDB server
+        try (MongoClient mongoClient = MongoClients.create(URI)) {
+            // Access the database
+            MongoDatabase database = mongoClient.getDatabase("vit");
+            System.out.println("Connected to MongoDB database: " + database.getName());
+            
+            // Call the insert method
+            insert();
+            
+            // Call the update method
+            update();
+            
+            // Call the logical operators method
+            applyLogicalOperators();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void insert() {
+        try (MongoClient mongoClient = MongoClients.create(URI)) {
+            MongoDatabase database = mongoClient.getDatabase("vit");
+            MongoCollection<Document> collection = database.getCollection("employees");
+
+            // Create a new document
+            Document employee = new Document("name", "Raj")
+                                .append("age", 30)
+                                .append("department", "IT");
+            
+            // Insert the document
+            collection.insertOne(employee);
+            System.out.println("Document inserted: " + employee.toJson());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void update() {
+        try (MongoClient mongoClient = MongoClients.create(URI)) {
+            MongoDatabase database = mongoClient.getDatabase("vit");
+            MongoCollection<Document> collection = database.getCollection("employees");
+
+            // Update the department of an employee with name "Raj"
+            collection.updateOne(Filters.eq("name", "Raj"),
+                                 Updates.set("department", "Engineering"));
+            
+            System.out.println("Document updated successfully.");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void applyLogicalOperators() {
+        try (MongoClient mongoClient = MongoClients.create(URI)) {
+            MongoDatabase database = mongoClient.getDatabase("vit");
+            MongoCollection<Document> collection = database.getCollection("employees");
+
+            // Using logical operators
+            Bson andFilter = Filters.and(Filters.eq("department", "Engineering"), Filters.gt("age", 25));
+            Bson orFilter = Filters.or(Filters.eq("department", "IT"), Filters.lt("age", 35));
+            Bson notFilter = Filters.not(Filters.eq("department", "HR"));
+            Bson norFilter = Filters.nor(Filters.eq("department", "Marketing"), Filters.eq("age", 40));
+
+            System.out.println("Documents matching AND filter: " + collection.countDocuments(andFilter));
+            System.out.println("Documents matching OR filter: " + collection.countDocuments(orFilter));
+            System.out.println("Documents matching NOT filter: " + collection.countDocuments(notFilter));
+            System.out.println("Documents matching NOR filter: " + collection.countDocuments(norFilter));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
